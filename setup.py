@@ -1,8 +1,10 @@
 from setuptools import setup
 
 
-with open("README.md", "rb") as f:
-    long_descr = f.read().decode("utf-8")
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_descr = f.read()
 
 
 setup(
@@ -19,6 +21,7 @@ setup(
     author_email='',
     description='cli tool to create a portable/workstation compatible version of awx/tower inventories',
     long_description=long_descr,
+    long_description_content_type='text/markdown',
     install_requires=['PyYAML', 'requests'],
-    python_requires='>=3.5'
+    python_requires='>=3.6'
 )
