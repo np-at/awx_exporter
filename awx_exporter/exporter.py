@@ -11,11 +11,12 @@ import yaml
 from requests.auth import HTTPBasicAuth
 from yaml import CLoader as Loader
 
+from awx_exporter.utils import check_group_name_compatibility, recurse_dict
 from awx_exporter.connection import Connection
 
 
 class Exporter(object):
-    def __init__(self, pre_parsed_args, defaults: dict=None):
+    def __init__(self, pre_parsed_args, defaults: dict = None):
         # set defaults, allow to be overwritten
         if defaults is not None:
             for key in defaults:
@@ -194,45 +195,8 @@ class Exporter(object):
 
         pass
 
-    def check_group_name_compatibility(self, group_name: str, skip_on_error: bool = True):
-        r = re.compile("^(\\d)+$")  # integers only, will cause ansible to freak out
-        try:
-            if r.match(str(group_name)):
-                print(f'{group_name} is an invalid group name, skipping')
-                if skip_on_error:
-                    return None
-                else:
-                    return f"invalid_group_name_{random.randint(1, 10000)}"
-            else:
-                return group_name
-        except Exception as ex:
-            print(ex)
-            return group_name
 
-    def recurse_dict(self, input_object, func=None):
-        output_object = dict()
-        if isinstance(input_object, dict):
-            for d in input_object:
-                if func is None:
-                    if (p := self.check_group_name_compatibility(d)) is not None:
-                        output_object[p] = input_object[d]
-                    else:
-                        continue
-                else:
-                    try:
-                        (x, y) = func(d, input_object.pop(d))
-                        output_object[x] = y
-                    except Exception as generic_ex:
-                        print(generic_ex)
-                        raise generic_ex
-                if output_object.keys().__contains__(d) and (
-                        isinstance(input_object[d], dict) or isinstance(input_object[d], list)):
-                    output_object[d] = self.recurse_dict(input_object[d])
-                else:
-                    continue
-        else:
-            output_object = input_object
-        return output_object
+
 
     def list_to_null_dict(self, input_object: object):
         if isinstance(input_object, dict):

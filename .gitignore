@@ -10,7 +10,7 @@ awx_exporter.egg-info
 build
 dist
 
-
+awx_hosts
 # Distribution / packaging
 .Python
 build/
