@@ -14,7 +14,6 @@ setup(
         "console_scripts": ['awx-export = awx_exporter.awx_exporter:main']
     },
     url='https://github.com/np-at/awx_exporter',
-    scripts=['./awx_exporter/__init__.py'],
     license='GPL3',
     author='np-at',
     author_email='',
