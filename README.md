@@ -13,25 +13,25 @@ or alternately
 
 Assuming your PATH is set up correctly, it should be accessible from the command line by typing awx-export
 
-> usage: awx-export [-h] [-u USERNAME] [-p [PASSWORD]] [-s] [-i INVENTORY_FILE_NAME] [-k]
->                  Host [TOKEN]
->
-> Quick and dirty way to make a portable workstation version of your awx/ansible tower
-> inventories
->
-> positional arguments:
->   Host                  the fully qualified domain name of your awx/tower instance
->   TOKEN                 an authentication token for your awx/tower instance, can be readonly  
-> optional arguments:
->   -h, --help            show this help message and exit
->   -u USERNAME, --username USERNAME
->                         use with -p if you can't or won't use a token
->   -p [PASSWORD], --password [PASSWORD]
->                         hidden password prompt
->   -s                    if set, will create a separate inventory file for each one present on the awx/tower instance, otherwise all inventories will be treated as groups and placed in the same file
->   -i INVENTORY_FILE_NAME, --inventory_file_name INVENTORY_FILE_NAME
->                         the name for the newly generated inventory file, does nothing if used with -s, defaults to awx_hosts
->   -k                    skips ssl verification, use with caution
+    usage: awx-export [-h] [-u USERNAME] [-p [PASSWORD]] [-s] [-i INVENTORY_FILE_NAME] [-k]
+                      Host [TOKEN]
+    
+      Quick and dirty way to make a portable workstation version of your awx/ansible tower
+     inventories
+    
+     positional arguments:
+       Host                  the fully qualified domain name of your awx/tower instance
+       TOKEN                 an authentication token for your awx/tower instance, can be readonly  
+     optional arguments:
+       -h, --help            show this help message and exit
+       -u USERNAME, --username USERNAME
+                             use with -p if you can't or won't use a token
+       -p [PASSWORD], --password [PASSWORD]
+                             hidden password prompt
+       -s                    if set, will create a separate inventory file for each one present on the awx/tower instance, otherwise all inventories will be treated as groups and placed in the same file
+       -i INVENTORY_FILE_NAME, --inventory_file_name INVENTORY_FILE_NAME
+                             the name for the newly generated inventory file, does nothing if used with -s, defaults to awx_hosts
+       -k                    skips ssl verification, use with caution
 
 ## Authentication Methods
 
