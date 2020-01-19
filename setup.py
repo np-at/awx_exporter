@@ -19,5 +19,6 @@ setup(
     author_email='',
     description='cli tool to create a portable/workstation compatible version of awx/tower inventories',
     long_description=long_descr,
-    install_requires=['PyYAML', 'requests']
+    install_requires=['PyYAML', 'requests'],
+    python_requires='>=3.5'
 )
