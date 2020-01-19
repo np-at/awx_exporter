@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+awx_exporter.egg-info
+build
+dist
+
+
 # Distribution / packaging
 .Python
 build/
