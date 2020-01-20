@@ -3,7 +3,7 @@ import os
 import random
 import re
 
-import pyaml
+from pyaml import dump
 
 
 def output_to_file(file_name, data, overwrite: bool = False, fmt: str = 'yaml'):
@@ -16,7 +16,7 @@ def output_to_file(file_name, data, overwrite: bool = False, fmt: str = 'yaml'):
         try:
             with open(file_name, 'w') as f:
                 if fmt == 'yaml':
-                    print(pyaml.dump(data), file=f)
+                    print(dump(data), file=f)
                 elif fmt == 'json':
                     print(json.dumps(data), file=f)
                 else:
