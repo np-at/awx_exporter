@@ -13,8 +13,9 @@ or alternately
 
 Assuming your PATH is set up correctly, it should be accessible from the command line by typing awx-export
 
-    usage: awx-export [-h] [-u USERNAME] [-p [PASSWORD]] [-s] [-i INVENTORY_FILE_NAME] [-k]
-                      Host [TOKEN]
+     usage: awx_export-runner.py [-h] [-u USERNAME] [-p [PASSWORD]] [-f] [-s] [-i INVENTORY_FILE_NAME]
+                            [-k] [--show_token] Host [TOKEN]
+
     
       Quick and dirty way to make a portable workstation version of your awx/ansible tower
      inventories
@@ -25,10 +26,15 @@ Assuming your PATH is set up correctly, it should be accessible from the command
        
      optional arguments:
        -h, --help            show this help message and exit
+       
        -u USERNAME, --username USERNAME
                              use with -p if you can't or won't use a token
+                             
        -p [PASSWORD], --password [PASSWORD]
                              hidden password prompt
+                             
+       -f, --force           overwrite existing files
+
        -s                    if set, will create a separate inventory file for each one present on
                              the awx/tower instance, otherwise all inventories will be treated as 
                              groups and placed in the same file
@@ -36,7 +42,12 @@ Assuming your PATH is set up correctly, it should be accessible from the command
        -i INVENTORY_FILE_NAME, --inventory_file_name INVENTORY_FILE_NAME
                              the name for the newly generated inventory file, does nothing if used 
                              with -s, defaults to awx_hosts
+                             
        -k                    skips ssl verification, use with caution
+       
+       --show_token          Use in combination with username/password authentication if you want to 
+                             have the utility print the authentication token to STDOUT after obtaining it
+
 
 ## Authentication Methods
 
