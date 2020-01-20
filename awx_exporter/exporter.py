@@ -1,18 +1,14 @@
 import collections
 import json
-import os
-import random
-import re
 from getpass import getpass
 
-import pyaml
 import requests
 import yaml
 from requests.auth import HTTPBasicAuth
 from yaml import CLoader as Loader
 
-from awx_exporter.utils import check_group_name_compatibility, recurse_dict
 from awx_exporter.connection import Connection
+from awx_exporter.utils import check_group_name_compatibility, recurse_dict, output_to_file
 
 
 class Exporter(object):
@@ -23,40 +19,50 @@ class Exporter(object):
                 setattr(self, key, defaults[key])
 
         parsed_args = pre_parsed_args
+
+        # set config variables
         self.Host = str(parsed_args.Host).rstrip('/') + '/'  # make sure it has exactly 1 forward slash at the end
         self.TOKEN = parsed_args.TOKEN
-        self.VERIFY_SSL = parsed_args.VERIFY_SSL
+        self.VERIFY_SSL = parsed_args.VERIFY_SSL or self.VERIFY_SSL
+
+        self.INV_FILE = parsed_args.inventory_file_name or self.INV_FILE
+        self.SEPARATE_INVENTORIES = parsed_args.SEPARATE_INVENTORIES or self.SEPARATE_INVENTORIES
+        self.SHOW_TOKEN = parsed_args.show_token or self.SHOW_TOKEN
+        self.FORCE = parsed_args.force or self.FORCE or False
+
         if not self.VERIFY_SSL:
             requests.packages.urllib3.disable_warnings()
-        self.INV_FILE = parsed_args.inventory_file_name
-        self.SEPARATE_INVENTORIES = parsed_args.SEPARATE_INVENTORIES
         self.connection = Connection(self.Host, self.VERIFY_SSL)
 
+        # Make sure we have everything we need to authenticate
         if parsed_args.TOKEN is None:
-            if parsed_args.username is None or parsed_args.password is None:
+            u_password = None
+            if parsed_args.username is None:
                 print("provide either a token or username/password to authenticate")
                 raise SystemExit
+            elif parsed_args.username is not None and parsed_args.password is None:
+                print(f"please provide the password for {parsed_args.username}")
+                u_password = getpass()
             elif parsed_args.password is not None:
                 if isinstance(parsed_args.password, bool):
-                    U_PASSWORD = getpass()
+                    print(f"please provide the password for {parsed_args.username}")
+                    u_password = getpass()
                 else:
-                    U_PASSWORD = parsed_args.password
-                try:
-                    self.TOKEN = self.get_oauth2_token(parsed_args.username, U_PASSWORD)
-                except Exception as ex:
-                    print(ex)
-                    raise ex
+                    u_password = parsed_args.password
+            try:
+                if u_password is None:
+                    raise Exception
+                else:
+                    self.TOKEN = self.get_oauth2_token(parsed_args.username, u_password)
+                    if self.SHOW_TOKEN:
+                        print(f'bearer token value={self.TOKEN}')
+            except Exception as ex:
+                print(ex)
+                raise ex
             else:
                 raise SystemExit
 
     # currently unused
-    def set_local_ca_chain(self):
-        # debian
-        os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(
-            '/etc/ssl/certs/',
-            'ca-certificates.crt')
-        # centos
-        #   'ca-bundle.crt')
 
     def request_get(self, endpoint, select_results: bool = True, try_get_all: bool = True, ):
         auth_header = f'Bearer {self.TOKEN}'
@@ -84,32 +90,13 @@ class Exporter(object):
         elif select_results:
             return response_data['results']
 
-    def request_post(self, endpoint, data={}):
+    def request_post(self, endpoint, data=None):
         auth_header = f'Bearer {self.TOKEN}'
-        response = requests.get(url=f'{self.Host + endpoint}', headers={'Authorization': auth_header},
-                                verify=self.VERIFY_SSL,
-                                data=data)
+        response = requests.post(url=f'{self.Host + endpoint}', headers={'Authorization': auth_header},
+                                 verify=self.VERIFY_SSL,
+                                 data=(data or {}))
         response_data = json.loads(response.content)
         return response_data['results']
-
-    def output_to_file(self, file_name, data, overwrite: bool = False, fmt: str = 'yaml'):
-        # this uses pyaml just because it deals with printing null values in a nicer (read: easier for me to figure
-        # out) fashion
-        if os.path.exists(file_name) and overwrite:
-            print("destination file already exists, aborting")
-            raise FileExistsError()
-        else:
-            try:
-                with open(file_name, 'w') as f:
-                    if fmt == 'yaml':
-                        print(pyaml.dump(data), file=f)
-                    elif fmt == 'json':
-                        print(json.dumps(data), file=f)
-                    else:
-                        raise NameError()
-            except Exception as ex:
-                print(ex)
-                raise ex
 
     def create_group_dict(self, group_list) -> dict:
         group_dict = dict()
@@ -123,7 +110,7 @@ class Exporter(object):
             for group_host in hg:
                 try:
                     hg_list[f"{group_host['name']}"] = None
-                except Exception as ex:
+                except Exception:
                     pass
             ht_dict['hosts'] = hg_list
             ht_dict['vars'] = yaml.load(group['variables'], Loader=Loader)
@@ -168,24 +155,24 @@ class Exporter(object):
                     h_inv_dict = dict()
                     for h in inv_hosts_raw:
                         # ht = run_awx_cli(f"hosts get {h['id']}")
-                        if self.check_group_name_compatibility(h['name']) is not None:
-                            h_inv_dict[f"{self.check_group_name_compatibility(h['name'])}"] = yaml.load(
+                        if check_group_name_compatibility(h['name']) is not None:
+                            h_inv_dict[f"{check_group_name_compatibility(h['name'])}"] = yaml.load(
                                 self.list_to_null_dict(h['variables']), Loader=Loader)
                     # inventory['all']['hosts'] = h_inv_dict
                     children_dict: dict = dict(map(lambda o: (o[0], self.list_to_null_dict(o[1])),
                                                    dict(filter(lambda x: x[0] != 'all', inventory.items())).items()))
-                    children_dict2 = self.recurse_dict(children_dict)
+                    children_dict2 = recurse_dict(children_dict)
                     final_dict = {"all": {"hosts": h_inv_dict,
                                           "children": children_dict2}}
 
-                    self.output_to_file(file_name=i['name'], data=final_dict)
+                    output_to_file(file_name=i['name'], data=final_dict, overwrite=self.FORCE)
 
             inv['children'] = g_dict
             global_dict = dict()
             global_dict['all'] = inv
 
             try:
-                self.output_to_file(self.INV_FILE, global_dict)
+                output_to_file(self.INV_FILE, global_dict)
             except Exception as ex:
                 print(ex)
             return global_dict
@@ -194,9 +181,6 @@ class Exporter(object):
             raise ex
 
         pass
-
-
-
 
     def list_to_null_dict(self, input_object: object):
         if isinstance(input_object, dict):
@@ -212,9 +196,9 @@ class Exporter(object):
                 r_dict[item] = None
             return r_dict
         elif isinstance(input_object, str):
-            return self.check_group_name_compatibility(input_object)
+            return check_group_name_compatibility(input_object)
         elif isinstance(input_object, int):
-            return self.check_group_name_compatibility(str(input_object))
+            return check_group_name_compatibility(str(input_object))
         else:
             return input_object
 

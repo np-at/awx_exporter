@@ -1,5 +1,6 @@
 import argparse
 import sys
+
 from .exporter import Exporter
 
 config_defaults = dict(
@@ -9,6 +10,8 @@ config_defaults = dict(
     SEPARATE_INVENTORIES=False,
     INV_FILE=str(),
     MAX_CONNECTION_ATTEMPTS=5,
+    SHOW_TOKEN=False,
+    FORCE=False
 )
 
 
@@ -31,7 +34,9 @@ def create_arg_parser():
                         nargs='?',
                         default=None,
                         const=True)
-
+    parser.add_argument('-f', '--force',
+                        help="overwrite existing files",
+                        action='store_true')
     parser.add_argument('-s',
                         dest='SEPARATE_INVENTORIES',
                         action="store_true",
@@ -49,6 +54,10 @@ def create_arg_parser():
                         action="store_false",
                         default=True,
                         help="skips ssl verification, use with caution")
+    parser.add_argument('--show_token',
+                        help="Use in combination with username/password authentication if you want to have the "
+                             "utility print the authentication token to STDOUT after obtaining it",
+                        action="store_true")
     parser.add_help = True
     return parser
 

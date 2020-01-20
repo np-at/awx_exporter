@@ -1,8 +1,32 @@
+import json
+import os
 import random
 import re
 
+import pyaml
 
-def check_group_name_compatibility(group_name: str, placeholder_value, skip_on_error: bool = True):
+
+def output_to_file(file_name, data, overwrite: bool = False, fmt: str = 'yaml'):
+    # this uses pyaml just because it deals with printing null values in a nicer (read: easier for me to figure
+    # out) fashion
+    if os.path.exists(file_name) and overwrite is False:
+        print("destination file already exists, aborting")
+        raise FileExistsError()
+    else:
+        try:
+            with open(file_name, 'w') as f:
+                if fmt == 'yaml':
+                    print(pyaml.dump(data), file=f)
+                elif fmt == 'json':
+                    print(json.dumps(data), file=f)
+                else:
+                    raise NameError()
+        except Exception as ex:
+            print(ex)
+            raise ex
+
+
+def check_group_name_compatibility(group_name: str, placeholder_value=None, skip_on_error: bool = True):
     r = re.compile("^(\\d)+$")  # integers only, will cause ansible to freak out
     try:
         if r.match(str(group_name)):
@@ -51,3 +75,12 @@ def recurse_dict(input_object, func=check_group_name_compatibility):
     else:
         output_object = input_object
     return output_object
+
+
+def set_local_ca_chain(self):
+    # debian
+    os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(
+        '/etc/ssl/certs/',
+        'ca-certificates.crt')
+    # centos
+    #   'ca-bundle.crt')
