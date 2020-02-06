@@ -35,3 +35,8 @@ class Test(TestCase):
         self.assertDictEqual(expected_output_skip_invalid, skip_inval)
     # TODO: implement testing for random number portion of function
     # self.assertDictEqual(expected_output_replace_invalid, replace_invalid)
+
+
+class Test(TestCase):
+    def test_output_to_file(self):
+        self.assertTrue(True)

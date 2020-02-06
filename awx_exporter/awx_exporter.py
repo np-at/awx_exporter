@@ -11,7 +11,8 @@ config_defaults = dict(
     INV_FILE=str(),
     MAX_CONNECTION_ATTEMPTS=5,
     SHOW_TOKEN=False,
-    FORCE=False
+    FORCE=False,
+    SKIP_SOURCE_GROUPS=True
 )
 
 
@@ -58,6 +59,11 @@ def create_arg_parser():
                         help="Use in combination with username/password authentication if you want to have the "
                              "utility print the authentication token to STDOUT after obtaining it",
                         action="store_true")
+    parser.add_argument('-g', '--skip_source',
+                        dest='SKIP_SOURCE_GROUPS',
+                        action='store_true',
+                        default=False,
+                        help="when fetching groups, skip those that originated in from inventory sources")
     parser.add_help = True
     return parser
 

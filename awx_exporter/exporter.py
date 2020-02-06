@@ -23,13 +23,13 @@ class Exporter(object):
         # set config variables
         self.Host = str(parsed_args.Host).rstrip('/') + '/'  # make sure it has exactly 1 forward slash at the end
         self.TOKEN = parsed_args.TOKEN
-        self.VERIFY_SSL = parsed_args.VERIFY_SSL or self.VERIFY_SSL
+        self.VERIFY_SSL = parsed_args.VERIFY_SSL
 
-        self.INV_FILE = parsed_args.inventory_file_name or self.INV_FILE
-        self.SEPARATE_INVENTORIES = parsed_args.SEPARATE_INVENTORIES or self.SEPARATE_INVENTORIES
-        self.SHOW_TOKEN = parsed_args.show_token or self.SHOW_TOKEN
-        self.FORCE = parsed_args.force or self.FORCE or False
-
+        self.INV_FILE = parsed_args.inventory_file_name
+        self.SEPARATE_INVENTORIES = parsed_args.SEPARATE_INVENTORIES
+        self.SHOW_TOKEN = parsed_args.show_token
+        self.FORCE = parsed_args.force
+        self.SKIP_SOURCE_GROUPS = parsed_args.SKIP_SOURCE_GROUPS
         if not self.VERIFY_SSL:
             requests.packages.urllib3.disable_warnings()
         self.connection = Connection(self.Host, self.VERIFY_SSL)
@@ -59,8 +59,8 @@ class Exporter(object):
             except Exception as ex:
                 print(ex)
                 raise ex
-            else:
-                raise SystemExit
+            # else:
+            #     raise SystemExit
 
     # currently unused
 
@@ -101,7 +101,14 @@ class Exporter(object):
     def create_group_dict(self, group_list) -> dict:
         group_dict = dict()
         for group in group_list:
-
+            try:
+                if is_from_source := group['has_inventory_sources']:
+                    if self.SKIP_SOURCE_GROUPS and is_from_source:
+                        continue
+                else:
+                    pass
+            except Exception:
+                pass
             ht_dict = dict()
 
             # get host list for group
