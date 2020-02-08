@@ -37,6 +37,6 @@ class Test(TestCase):
     # self.assertDictEqual(expected_output_replace_invalid, replace_invalid)
 
 
-class Test(TestCase):
+class Test1(TestCase):
     def test_output_to_file(self):
         self.assertTrue(True)

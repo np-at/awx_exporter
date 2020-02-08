@@ -179,7 +179,7 @@ class Exporter(object):
             global_dict['all'] = inv
 
             try:
-                output_to_file(self.INV_FILE, global_dict)
+                output_to_file(self.INV_FILE, global_dict, overwrite=self.FORCE)
             except Exception as ex:
                 print(ex)
             return global_dict
