@@ -1,8 +1,9 @@
 import requests
+import requests.auth
 
 
 # mostly copied from awxkit
-class Token_Auth(requests.auth.AuthBase):
+class TokenAuth(requests.auth.AuthBase):
     def __init__(self, token, auth_type='Token'):
         self.token = token
         self.auth_type = auth_type
@@ -39,7 +40,7 @@ class Connection(object):
             else:
                 self.session.auth = (username, password)
         elif token:
-            self.session.auth = Token_Auth(token, auth_type=kwargs.get('auth_type', 'Token'))
+            self.session.auth = TokenAuth(token, auth_type=kwargs.get('auth_type', 'Token'))
         else:
             self.session.auth = None
 
